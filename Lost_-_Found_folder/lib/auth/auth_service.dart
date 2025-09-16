@@ -17,7 +17,7 @@ class AuthService {
       if (response.user != null) {
         // We rely on the Supabase trigger `on_auth_user_created` to create the profile.
         // This part is mostly for demonstration or if the trigger fails.
-        final existingProfile = await _supabase
+        await _supabase
             .from(AppConstants.profilesTable)
             .select()
             .eq('id', response.user!.id)
@@ -63,8 +63,8 @@ class AuthService {
           .single();
 
       return UserProfile.fromJson(response);
-          return null;
     } catch (e) {
+      // In a real app, you might want to use a proper logger
       print('Error fetching user profile: $e');
       return null;
     }

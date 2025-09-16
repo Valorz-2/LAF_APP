@@ -29,36 +29,26 @@ class ItemService {
     if (imageFile != null) {
       // Generate a unique filename (UUID.extension)
       final String fileName = '${_uuid.v4()}.${imageFile.path.split('.').last}';
-      // This is the path *within the bucket* where the file will be stored.
-      // It should NOT include the bucket name itself.
       final String pathInBucket = fileName;
 
       print('Attempting to upload image to bucket: ${AppConstants.itemImagesBucket}');
-      print('Generated file name: $fileName');
       print('Path in bucket for upload: $pathInBucket');
-      print('Image file exists locally: ${await imageFile.exists()}'); // Check if file exists
 
       try {
-        // Upload the file to the specified bucket and path within that bucket.
-        // The `upload` method returns the `pathInBucket` you provided if successful.
+        // Upload the file
         await _supabase.storage
             .from(AppConstants.itemImagesBucket)
             .upload(pathInBucket, imageFile,
-                fileOptions: const FileOptions(upsert: false)); // upsert: false prevents overwriting
+                fileOptions: const FileOptions(upsert: false));
         print('Image uploaded successfully to path: $pathInBucket');
 
         // Get the public URL for the uploaded file.
-        // IMPORTANT FIX: getPublicUrl expects the path *relative to the bucket's root*.
-        // So, we pass `pathInBucket` (which is just the filename) directly.
-        // This prevents the bucket name from being duplicated in the URL.
         imageUrl = _supabase.storage.from(AppConstants.itemImagesBucket).getPublicUrl(pathInBucket);
         print('Public URL generated: $imageUrl');
-        print('Debug: Path passed to getPublicUrl: $pathInBucket'); // Verify this in console
 
       } on StorageException catch (e) {
         print('Supabase Storage Error during upload: ${e.message}');
-        print('Error status code: ${e.statusCode}');
-        rethrow; // Re-throw to be caught by UI
+        rethrow;
       } catch (e) {
         print('Generic Error uploading image: $e');
         rethrow;
@@ -99,7 +89,6 @@ class ItemService {
           .eq('id', itemId)
           .single();
       return LostItem.fromJson(response);
-          return null;
     } catch (e) {
       print('Error getting lost item by ID: $e');
       return null;

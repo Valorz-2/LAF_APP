@@ -17,13 +17,35 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
 
   Future<void> _signUp() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Regex to ensure the email matches the format CB.SC.XXXXXXXXXX@xx.amrita.edu
+    final RegExp amritaEmailRegex = RegExp(
+      r'^CB\.SC\.\w{10}@[a-zA-Z]{2}\.amrita\.edu$',
+      caseSensitive: false,
+    );
+
+    // Validate the email format before proceeding
+    if (!amritaEmailRegex.hasMatch(email)) {
+      if (mounted) {
+        CustomDialogs.showAlertDialog(
+          context: context,
+          title: 'Invalid Email Format',
+          message: 'Please use your official campus email, e.g., CB.SC.XXXXXXXXXX@cb.amrita.edu',
+        );
+      }
+      return; // Stop the function if validation fails
+    }
+
     setState(() {
       _isLoading = true;
     });
+
     try {
       final AuthResponse response = await _authService.signUpWithEmailPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+        email,
+        password,
       );
       if (response.user != null) {
         if (mounted) {
@@ -55,9 +77,11 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -94,8 +118,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Enter your email',
+                  labelText: 'Amrita Campus Email',
+                  hintText: 'e.g., CB.SC.XXXXXXXXXX@cb.amrita.edu',
                   prefixIcon: Icon(Icons.email),
                 ),
               ),

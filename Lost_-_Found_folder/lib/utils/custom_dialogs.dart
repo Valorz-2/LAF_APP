@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 
+/// A utility class for showing common dialogs.
 class CustomDialogs {
+  /// Shows a simple alert dialog with a title, message, and a single 'OK' button.
   static void showAlertDialog({
     required BuildContext context,
     required String title,
     required String message,
-    String buttonText = 'OK',
     VoidCallback? onButtonPressed,
   }) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
+      builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(title),
           content: Text(message),
           actions: <Widget>[
             TextButton(
+              child: const Text('OK'),
               onPressed: () {
-                Navigator.of(dialogContext).pop();
-                onButtonPressed?.call();
+                Navigator.of(context).pop(); // Dismiss the dialog
+                if (onButtonPressed != null) {
+                  onButtonPressed(); // Execute the callback if provided
+                }
               },
-              child: Text(buttonText),
             ),
           ],
         );
@@ -29,32 +31,31 @@ class CustomDialogs {
     );
   }
 
+  /// Shows a confirmation dialog with 'No' and 'Yes' options.
+  /// Returns `true` if 'Yes' is pressed, `false` if 'No' is pressed, and `null` if dismissed.
   static Future<bool?> showConfirmationDialog({
     required BuildContext context,
     required String title,
     required String message,
-    String confirmText = 'Yes',
-    String cancelText = 'No',
-  }) async {
+  }) {
     return showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) {
+      builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(title),
           content: Text(message),
           actions: <Widget>[
             TextButton(
+              child: const Text('No'),
               onPressed: () {
-                Navigator.of(dialogContext).pop(false); // User cancelled
+                Navigator.of(context).pop(false); // Return false
               },
-              child: Text(cancelText),
             ),
-            ElevatedButton(
+            TextButton(
+              child: const Text('Yes'),
               onPressed: () {
-                Navigator.of(dialogContext).pop(true); // User confirmed
+                Navigator.of(context).pop(true); // Return true
               },
-              child: Text(confirmText),
             ),
           ],
         );
@@ -62,13 +63,13 @@ class CustomDialogs {
     );
   }
 
+  /// Shows a persistent loading dialog with a message.
   static void showLoadingDialog(BuildContext context, {String message = 'Loading...'}) {
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
+      barrierDismissible: false, // User cannot dismiss by tapping outside
+      builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Row(
@@ -85,6 +86,7 @@ class CustomDialogs {
     );
   }
 
+  /// Hides the currently shown loading dialog.
   static void hideLoadingDialog(BuildContext context) {
     Navigator.of(context).pop();
   }

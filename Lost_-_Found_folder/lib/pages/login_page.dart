@@ -3,7 +3,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lost_and_found_app/auth/auth_service.dart';
 import 'package:lost_and_found_app/utils/custom_dialogs.dart';
 import 'package:lost_and_found_app/pages/register_page.dart';
-// import 'package:lost_and_found_app/pages/forgot_password_page.dart'; // Removed unused import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,18 +18,38 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
 
   Future<void> _signIn() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    // Regex to ensure the email matches the format CB.SC.XXXXXXXXXX@xx.amrita.edu
+    final RegExp amritaEmailRegex = RegExp(
+      r'^CB\.SC\.\w{10}@[a-zA-Z]{2}\.amrita\.edu$',
+      caseSensitive: false,
+    );
+
+    // Validate the email format before proceeding
+    if (!amritaEmailRegex.hasMatch(email)) {
+      if (mounted) {
+        CustomDialogs.showAlertDialog(
+          context: context,
+          title: 'Invalid Email Format',
+          message: 'Please use your official campus email, e.g., CB.SC.XXXXXXXXXX@cb.amrita.edu',
+        );
+      }
+      return; // Stop the function if validation fails
+    }
+
     setState(() {
       _isLoading = true;
     });
+
     try {
       final AuthResponse response = await _authService.signInWithEmailPassword(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
+        email,
+        password,
       );
       if (response.user != null) {
-        // No dialog here.
-        // The AuthChecker widget (which listens to Supabase's authStateChanges stream)
-        // will automatically detect the signed-in state and navigate to the HomePage.
+        // The AuthChecker will handle navigation automatically.
       }
     } on AuthException catch (e) {
       if (mounted) {
@@ -49,9 +68,11 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -73,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
           children: <Widget>[
             // Top curved section
             Container(
-              height: size.height * 0.35, // Adjust height as needed
+              height: size.height * 0.35,
               width: size.width,
               decoration: const BoxDecoration(
                 color: primaryMaroon,
@@ -85,13 +106,12 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Placeholder for your logo (replace with actual image if available)
                   Image.network(
-                    'https://placehold.co/100x100/FFFFFF/880022?text=LOGO', // Placeholder logo
+                    'https://placehold.co/100x100/FFFFFF/880022?text=LOGO',
                     height: 100,
                     width: 100,
                     errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.school, // Fallback icon
+                      Icons.school,
                       size: 80,
                       color: Colors.white,
                     ),
@@ -132,8 +152,8 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
-                      labelText: 'Your Amrita Email Id',
-                      hintText: 'Enter your email',
+                      labelText: 'Your Amrita Campus Email',
+                      hintText: 'e.g., CB.SC.XXXXXXXXXX@cb.amrita.edu',
                       prefixIcon: Icon(Icons.email),
                     ),
                   ),
